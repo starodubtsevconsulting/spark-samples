@@ -19,15 +19,20 @@ object PopularWordCounter {
 
     println(s"Words: ${wordsRdd.count()}")
 
-    val sortedWords:RDD[(Int, String)] = wordsRdd
+    val countedWords:RDD[(Int, String)] = wordsRdd
                                           .map(w => (w, 1))
                                           .reduceByKey( (count1,count2) => count1 + count2) // counting the occurrences of teach word
                                           .map(x => (x._2, x._1))              // flipping {count, word}
-                                          .sortByKey() // by the count
 
-    sortedWords.foreach(x => {
-      println( s"${x._1} ${x._2}" )
-    })
+    val sortedWordsRdd = countedWords.sortByKey(ascending = false, numPartitions = 1)  // by the count
+
+    val top100 =  sortedWordsRdd.take(100)
+
+    for (result <- top100) {
+      val count = result._1
+      val word = result._2
+      println(s"$word: $count")
+    }
 
     /*
        Somehow I thought that word "depends" would be the one of the most often used word in the
